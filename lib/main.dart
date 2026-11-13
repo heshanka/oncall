@@ -286,10 +286,10 @@ class _HomePageState extends State<HomePage>
         ),
         const SizedBox(height: 10),
         SizedBox(
-          height: 96,
+          height: 120, // 96px cards + room for the bob & shadow
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             itemCount: days.length,
             separatorBuilder: (_, _) => const SizedBox(width: 12),
             itemBuilder: (context, i) {
