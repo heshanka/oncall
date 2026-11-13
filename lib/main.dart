@@ -31,6 +31,16 @@ String personFor(DateTime day) {
   return rotation[diff % rotation.length]; // Dart % is always non-negative
 }
 
+/// The next [count] days on or after [from] that [person] is on call.
+List<DateTime> upcomingFor(String person, DateTime from, {int count = 8}) {
+  final days = <DateTime>[];
+  for (var i = 0; days.length < count; i++) {
+    final d = DateTime(from.year, from.month, from.day + i);
+    if (personFor(d) == person) days.add(d);
+  }
+  return days;
+}
+
 String fmt(DateTime d) =>
     '${_weekdays[d.weekday - 1]}, ${d.day} ${_months[d.month - 1]}';
 
@@ -114,7 +124,7 @@ class _HomePageState extends State<HomePage>
   Widget build(BuildContext context) {
     final name = personFor(today);
     final upcoming = List.generate(
-      7,
+      14,
       (i) => DateTime(today.year, today.month, today.day + i + 1),
     );
 
@@ -288,37 +298,46 @@ class _HomePageState extends State<HomePage>
               final bob = math.sin(t * 2 * math.pi * 2 + i * 0.9) * 6;
               return Transform.translate(
                 offset: Offset(0, bob),
-                child: Container(
-                  width: 100,
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: letterColors[i % letterColors.length],
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: cream, width: 3),
-                    boxShadow: const [
-                      BoxShadow(color: Colors.black26, offset: Offset(0, 4)),
-                    ],
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        who,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 15,
-                        ),
+                child: GestureDetector(
+                  onTap: () => _showSchedule(who),
+                  child: MouseRegion(
+                    cursor: SystemMouseCursors.click,
+                    child: Container(
+                      width: 100,
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: letterColors[i % letterColors.length],
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(color: cream, width: 3),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Colors.black26,
+                            offset: Offset(0, 4),
+                          ),
+                        ],
                       ),
-                      Text(
-                        fmt(d),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 11,
-                        ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            who,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 15,
+                            ),
+                          ),
+                          Text(
+                            fmt(d),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
               );
@@ -326,6 +345,112 @@ class _HomePageState extends State<HomePage>
           ),
         ),
       ],
+    );
+  }
+
+  void _showSchedule(String person) {
+    final now = DateTime(today.year, today.month, today.day);
+    final days = upcomingFor(person, now);
+    final color = letterColors[rotation.indexOf(person) % letterColors.length];
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => Container(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.sizeOf(context).height * 0.75,
+        ),
+        decoration: const BoxDecoration(
+          color: cream,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          border: Border(
+            top: BorderSide(color: ink, width: 4),
+            left: BorderSide(color: ink, width: 4),
+            right: BorderSide(color: ink, width: 4),
+          ),
+        ),
+        child: SafeArea(
+          top: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                margin: const EdgeInsets.only(top: 10),
+                width: 44,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: ink.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(3),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 18,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: ink,
+                      borderRadius: BorderRadius.circular(40),
+                      border: Border.all(color: yellow, width: 4),
+                    ),
+                    child: Text(
+                      "🎪 ${person.toUpperCase()}'S SHOWTIMES 🎪",
+                      maxLines: 1,
+                      style: const TextStyle(
+                        color: yellow,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Flexible(
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 20),
+                  itemCount: days.length,
+                  separatorBuilder: (_, _) => const SizedBox(height: 10),
+                  itemBuilder: (context, i) {
+                    final d = days[i];
+                    return Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: i == 0 ? color : Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: ink, width: 3),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Colors.black26,
+                            offset: Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Text(
+                        fmt(d),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: i == 0 ? Colors.white : ink,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

@@ -11,4 +11,16 @@ void main() {
     expect(personFor(DateTime(2026, 11, 9)), 'Kevser');
     expect(personFor(DateTime(2027, 3, 30)), personFor(DateTime(2027, 3, 26)));
   });
+
+  test('upcomingFor lists a person\'s next dates', () {
+    final days = upcomingFor('Mahdi', DateTime(2026, 11, 14), count: 3);
+    expect(days, [
+      DateTime(2026, 11, 15),
+      DateTime(2026, 11, 19),
+      DateTime(2026, 11, 23),
+    ]);
+    expect(upcomingFor('Heshanka', DateTime(2026, 11, 14), count: 1), [
+      DateTime(2026, 11, 14),
+    ]);
+  });
 }
